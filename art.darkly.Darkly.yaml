@@ -1,0 +1,70 @@
+app-id: art.darkly.Darkly
+
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+
+base: org.electronjs.Electron2.BaseApp
+base-version: '26.08'
+
+command: darkly
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  # ScreenCast portal transport for display-capture void layers.
+  - --filesystem=xdg-run/pipewire-0
+  - --share=network
+
+modules:
+  - name: darkly
+    buildsystem: simple
+    build-commands:
+      - ar x *.deb
+      - tar -xf data.tar.*
+      - mkdir -p /app/darkly
+      - cp -a usr/lib/darkly-desktop/. /app/darkly/
+      - install -Dm755 darkly.sh /app/bin/darkly
+      - install -Dm644 art.darkly.Darkly.png /app/share/icons/hicolor/512x512/apps/art.darkly.Darkly.png
+      - install -Dm644 art.darkly.Darkly.desktop /app/share/applications/art.darkly.Darkly.desktop
+      - install -Dm644 art.darkly.Darkly.metainfo.xml /app/share/metainfo/art.darkly.Darkly.metainfo.xml
+      - install -Dm644 LICENSE /app/share/licenses/art.darkly.Darkly/LICENSE
+    sources:
+      - type: file
+        only-arches: [x86_64]
+        url: https://github.com/darkly-art/darkly/releases/download/v0.8.0/darkly-desktop_0.8.0_amd64.deb
+        sha256: d0b165cc751ee510e91ce296e762277ffa0d9b1c751c255a5e6da3a292cebd71
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/darkly-art/darkly/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: >-
+            .assets[] | select(.name | test("darkly-desktop_.*_amd64\\.deb$"))
+            | .browser_download_url
+      - type: file
+        only-arches: [aarch64]
+        url: https://github.com/darkly-art/darkly/releases/download/v0.8.0/darkly-desktop_0.8.0_arm64.deb
+        sha256: f3e1866fd17021c154cefee3c10201a577863de8d8dd9ff8a7dd2879f65a76a0
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/darkly-art/darkly/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: >-
+            .assets[] | select(.name | test("darkly-desktop_.*_arm64\\.deb$"))
+            | .browser_download_url
+      # Darkly's own AGPL-3.0-or-later text, pinned to the v0.8.0 commit. The
+      # .deb only carries Electron's MIT copyright file, which is not the
+      # app's license.
+      - type: file
+        url: https://raw.githubusercontent.com/darkly-art/darkly/eb27cca0520dcb6aa27e42e8cca17751325c1d51/LICENSE
+        sha256: cd7b51413cff03a24eb8050a69f1eeca0ba0fc03ec4856c57589735420a0c5e1
+      - type: file
+        path: darkly.sh
+      - type: file
+        path: art.darkly.Darkly.png
+      - type: file
+        path: art.darkly.Darkly.desktop
+      - type: file
+        path: art.darkly.Darkly.metainfo.xml
